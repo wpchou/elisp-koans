@@ -121,7 +121,29 @@ caller is asked for the koan group to test."
 
 
 ;;;###autoload
-(defalias 'elisp-koans 'elisp-koans/run-tests)
+(defun elisp-koans/contemplate ()
+  "Run koans in order and jump to next failure or blank."
+  (interactive)
+  (elisp-koans/load-groups)
+  (elisp-koans/run-tests)
+  (let ((retry-for 3.0)
+        (retry-interval 0.2))
+    (while (not (re-search-forward "^Finished\.$" nil t))
+      (if ((>= 0 retries))
+          (error "elisp-koans did not succcessfully complete!"))
+      (sit-for retry-interval)
+      (setf retries (- retry-for retry-interval))))
+  (forward-button 3)
+  (let ((failure (button-label (button-at (point)))))
+    (push-button)
+    (re-search-forward "___?_?")
+    (backward-word)
+    (forward-char)
+    (message "%s has damaged your karma" failure)))
+
+
+;;;###autoload
+(defalias 'elisp-koans 'elisp-koans/contemplate)
 
 (provide 'elisp-koans)
 
